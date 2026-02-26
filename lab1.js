@@ -24,5 +24,4 @@ function startTimeout(iterator, seconds) {
     }, seconds * 1000);
 }
 
-const gen = dayGenerator();
-startTimeout(gen, 5);
+startTimeout(dayGenerator(), 5);
