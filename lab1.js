@@ -11,11 +11,12 @@ function* dayGenerator() {
 function startTimeout(iterator, seconds) {
     let iteration = 1;
     const interval = setInterval(() => {
-        const day = iterator.next().value;
+        const result = iterator.next();
+        const day = result.value;
         const time = new Date().toLocaleTimeString();
         
         console.log(`[${time}] Iteration ${iteration++}: ${day}`);
-    }, 200);
+    }, 500);
 
     setTimeout(() => {
         clearInterval(interval);
@@ -23,5 +24,4 @@ function startTimeout(iterator, seconds) {
     }, seconds * 1000);
 }
 
-const gen = dayGenerator();
-startTimeout(gen, 5);
+startTimeout(dayGenerator(), 5);
