@@ -6,54 +6,55 @@ function memoize(fn, options = {}) {
 
     const cache = new Map();
 
-    function isExpired(item) {
-        return ttl && Date.now() - item.time > ttl;
-    }
-
-    function evict() {
-        if (cache.size <= maxSize) return;
-        let keyToDelete;
-        if (strategy === 'lfu') {
-            let min = Infinity;
-            for (const [k, v] of cache) {
-                if (v.count < min) {
-                    min = v.count;
-                    keyToDelete = k;
-                }
-            }
-        } else if (strategy === 'custom' && evictionFn) {
-            keyToDelete = evictionFn(cache);
-        } else {
-            keyToDelete = cache.keys().next().value;
-        }
-
-        cache.delete(keyToDelete);
-    }
     return function (...args) {
         const key = JSON.stringify(args);
-        if (cache.has(key)) {
-            const item = cache.get(key);
-            if (isExpired(item)) {
+        const now = Date.now();
+
+        const cached = cache.get(key);
+
+        if (cached) {
+            if (ttl && now - cached.time > ttl) {
                 cache.delete(key);
             } else {
-                item.count++;
+                cached.count++;
                 cache.delete(key);
-                cache.set(key, item);
-                return item.value;
+                cache.set(key, cached);
+                return cached.value;
             }
         }
 
-        const value = fn(...args);
+        const result = fn(...args);
 
         cache.set(key, {
-            value,
+            value: result,
             count: 1,
-            time: Date.now()
+            time: now
         });
 
-        evict();
+        if (cache.size > maxSize) {
+            let removeKey;
 
-        return value;
+            if (strategy === 'lfu') {
+                let min = Infinity;
+
+                for (const [k, v] of cache) {
+                    if (v.count < min) {
+                        min = v.count;
+                        removeKey = k;
+                    }
+                }
+            } 
+            else if (strategy === 'custom' && evictionFn) {
+                removeKey = evictionFn(cache);
+            } 
+            else {
+                removeKey = cache.keys().next().value;
+            }
+
+            cache.delete(removeKey);
+        }
+
+        return result;
     };
 }
 
