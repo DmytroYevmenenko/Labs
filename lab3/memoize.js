@@ -1,49 +1,61 @@
 function memoize(fn, options = {}) {
-    const maxSize = options.maxSize || Infinity;
-    const strategy = options.strategy || 'lru';
+    const maxSize = options.maxSize ?? Infinity;
     const ttl = options.ttl;
+    const strategy = options.strategy || 'lru';
+    const evictionFn = options.evictionFn;
 
     const cache = new Map();
 
+    function isExpired(item) {
+        return ttl && Date.now() - item.time > ttl;
+    }
+
+    function evict() {
+        if (cache.size <= maxSize) return;
+        let keyToDelete;
+        if (strategy === 'lfu') {
+            let min = Infinity;
+            for (const [k, v] of cache) {
+                if (v.count < min) {
+                    min = v.count;
+                    keyToDelete = k;
+                }
+            }
+        } else if (strategy === 'custom' && evictionFn) {
+            keyToDelete = evictionFn(cache);
+        } else {
+            keyToDelete = cache.keys().next().value;
+        }
+
+        cache.delete(keyToDelete);
+    }
     return function (...args) {
         const key = JSON.stringify(args);
-
         if (cache.has(key)) {
             const item = cache.get(key);
-            if (!ttl || Date.now() - item.time <= ttl) {
+            if (isExpired(item)) {
+                cache.delete(key);
+            } else {
                 item.count++;
                 cache.delete(key);
                 cache.set(key, item);
                 return item.value;
             }
-            cache.delete(key);
         }
 
-        const result = fn(...args);
+        const value = fn(...args);
 
         cache.set(key, {
-            value: result,
+            value,
             count: 1,
             time: Date.now()
         });
 
-        if (cache.size > maxSize) {
-            let del = cache.keys().next().value;
-            if (strategy === 'lfu') {
-                let min = Infinity;
-                for (let [k, v] of cache) {
-                    if (v.count < min) {
-                        min = v.count;
-                        del = k;
-                    }
-                }
-            }
-            cache.delete(del);
-        }
-        return result;
+        evict();
+
+        return value;
     };
 }
-
 
 const slow = (a, b) => {
     console.log("calc...");
