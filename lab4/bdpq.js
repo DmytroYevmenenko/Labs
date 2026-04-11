@@ -1,15 +1,17 @@
 class BiDirectionalPriorityQueue {
     constructor() {
         this.items = [];
+        this.order = [];
     }
 
     enqueue(item, priority) {
         const element = {
             value: item,
             priority: priority,
-            time: Date.now()
+            id: Date.now()
         };
         this.items.push(element);
+        this.order.push(element);
     }
 
     peek(mode) {
@@ -35,6 +37,14 @@ class BiDirectionalPriorityQueue {
             return lowest;
         }
 
+        if (mode === "oldest") {
+            return this.order[0];
+        }
+
+        if (mode === "newest") {
+            return this.order[this.order.length - 1];
+        }
+
         return null;
     }
 
@@ -47,6 +57,9 @@ const pq = new BiDirectionalPriorityQueue();
 pq.enqueue("A", 5);
 pq.enqueue("B", 1);
 pq.enqueue("C", 10);
+pq.enqueue("D", 3);
 
 console.log(pq.peek("highest").value);
 console.log(pq.peek("lowest").value);
+console.log(pq.peek("oldest").value);
+console.log(pq.peek("newest").value);
