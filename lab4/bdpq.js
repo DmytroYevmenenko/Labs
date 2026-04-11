@@ -8,7 +8,7 @@ class BiDirectionalPriorityQueue {
         const element = {
             value: item,
             priority: priority,
-            id: Date.now()
+            id: Math.random()
         };
         this.items.push(element);
         this.order.push(element);
@@ -49,7 +49,49 @@ class BiDirectionalPriorityQueue {
     }
 
     dequeue(mode) {
-        return null;
+        if (this.items.length === 0) return null;
+
+        let toRemove = null;
+
+        if (mode === "highest") {
+            toRemove = this.items[0];
+            for (let i = 1; i < this.items.length; i++) {
+                if (this.items[i].priority > toRemove.priority) {
+                    toRemove = this.items[i];
+                }
+            }
+        } else if (mode === "lowest") {
+            toRemove = this.items[0];
+            for (let i = 1; i < this.items.length; i++) {
+                if (this.items[i].priority < toRemove.priority) {
+                    toRemove = this.items[i];
+                }
+            }
+        } else if (mode === "oldest") {
+            toRemove = this.order[0];
+        } else if (mode === "newest") {
+            toRemove = this.order[this.order.length - 1];
+        } else {
+            return null;
+        }
+
+        const newItems = [];
+        for (let i = 0; i < this.items.length; i++) {
+            if (this.items[i].id !== toRemove.id) {
+                newItems.push(this.items[i]);
+            }
+        }
+        this.items = newItems;
+
+        const newOrder = [];
+        for (let i = 0; i < this.order.length; i++) {
+            if (this.order[i].id !== toRemove.id) {
+                newOrder.push(this.order[i]);
+            }
+        }
+        this.order = newOrder;
+
+        return toRemove;
     }
 }
 
@@ -59,7 +101,7 @@ pq.enqueue("B", 1);
 pq.enqueue("C", 10);
 pq.enqueue("D", 3);
 
-console.log(pq.peek("highest").value);
-console.log(pq.peek("lowest").value);
-console.log(pq.peek("oldest").value);
-console.log(pq.peek("newest").value);
+console.log(pq.dequeue("highest").value);
+console.log(pq.dequeue("oldest").value);
+console.log(pq.dequeue("lowest").value);
+console.log(pq.dequeue("newest").value);
