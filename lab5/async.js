@@ -1,6 +1,7 @@
 function asyncMapCallback(arr, fn, callback) {
   const result = []
   let completed = 0
+  let finished = false
 
   if (arr.length === 0) {
     callback(null, result)
@@ -9,10 +10,15 @@ function asyncMapCallback(arr, fn, callback) {
 
   for (let i = 0; i < arr.length; i++) {
     fn(arr[i], i, arr, (err, value) => {
-      if (err) return callback(err)
+      if (finished) return
+      if (err) {
+        finished = true
+        return callback(err)
+      }
       result[i] = value
       completed++
       if (completed === arr.length) {
+        finished = true
         callback(null, result)
       }
     })
@@ -46,6 +52,8 @@ asyncMapCallback([10, 20, 30], (x, i, arr, cb) => {
   setTimeout(() => cb(null, x + 5), 50)
 }, (err, res) => console.log(res))
 
-console.log('=== Promise ===')
-asyncMapPromise([10, 20, 30], x => x * 3)
-  .then(console.log)
+console.log('=== Promise with async/await ===')
+;(async () => {
+  const res = await asyncMapPromise([10, 20, 30], x => x * 3)
+  console.log(res)
+})()
