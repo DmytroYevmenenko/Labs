@@ -1,47 +1,77 @@
-const EventEmitter = require("events");
+const EventEmitter = require("events")
 
-const bus = new EventEmitter();
+const bus = new EventEmitter()
 
 function createUser(name) {
-  return {
-    name,
-    subscribe() {
-      bus.on("message", (data) => {
-        console.log(`${this.name} received: ${data.text}`);
-      });
-    },
-    unsubscribe() {
-      bus.off("message", () => {});
-      console.log(`${this.name} unsubscribed (but not really)`);
+    let handler = null
+    return {
+        name,
+        subscribe() {
+            handler = (data) => {
+            console.log(`${name} received: ${data.text}`);
+            };
+        bus.on("message", handler);
+        console.log(`${name} subscribed`);
+        },
+        unsubscribe() {
+            if (handler) {
+                bus.off("message", handler);
+                handler = null;
+                console.log(`${name} unsubscribed`);
+            }
+        }
     }
-  };
 }
 
 function createLogger() {
-  return {
-    subscribe() {
-      bus.on("message", (data) => {
-        console.log(`[log] event at ${new Date().toISOString()}: ${data.text}`);
-      });
-    }
-  };
+    let handler = null;
+    
+    return {
+        subscribe() {
+            handler = (data) => {  
+                console.log(`[log] ${new Date().toISOString()}: ${data.text}`);
+            };
+            bus.on("message", handler);
+        },
+        unsubscribe() {
+            if (handler) {
+                bus.off("message", handler);
+                handler = null;
+            }
+        }    
+    };
 }
 
 async function main() {
-  const alice = createUser("Alice");
-  const bob = createUser("Bob");
-  const logger = createLogger();
+    const alice = createUser("Alice")
+    const bob = createUser("Bob")
+    const logger = createLogger()
 
-  alice.subscribe();
-  bob.subscribe();
-  logger.subscribe();
- bus.emit("message", { text: "first message" });
+    alice.subscribe()
+    bob.subscribe()
+    logger.subscribe()
 
-  await new Promise(r => setTimeout(r, 500));
 
-  bob.unsubscribe();
+    console.log("\n--- first message (all listeners active) ---");
+    bus.emit("message", { text: "hello everyone" });
 
-  bus.emit("message", { text: "second message" });
+    await new Promise(r => setTimeout(r, 500));
+
+    console.log("\n--- bob unsubscribes ---");
+    bob.unsubscribe();
+
+    console.log("\n--- second message (bob should not receive) ---");
+    bus.emit("message", { text: "bob should miss this" });
+
+    await new Promise(r => setTimeout(r, 500));
+
+    console.log("\n--- everyone unsubscribes ---");
+    alice.unsubscribe();
+    logger.unsubscribe();
+
+    console.log("\n--- third message (nobody listening) ---");
+    bus.emit("message", { text: "nobody hears this" });
+    console.log("(no output above = correct)");
 }
 
 main();
