@@ -2,38 +2,80 @@ const LOG_LEVELS = { DEBUG: 0, INFO: 1, ERROR: 2 };
 
 let currentLevel = LOG_LEVELS.DEBUG;
 
+
+const formatters = {
+  text(entry) {
+    return `[${entry.timestamp}] [${entry.level}] ${entry.fnName} | args: ${JSON.stringify(entry.args)} | result: ${JSON.stringify(entry.result)} | ${entry.ms}ms`;
+  },
+
+  json(entry) {
+    return JSON.stringify(entry);
+  },
+
+  short(entry) {
+    return `${entry.level} ${entry.fnName}() ${entry.ms}ms`;
+  }
+};
+
+let currentFormatter = "text";
+
+function setFormatter(name) {
+  if (!formatters[name]) throw new Error(`unknown formatter: ${name}`);
+  currentFormatter = name;
+  console.log(`formatter set to ${name}`);
+}
+
+function setLogLevel(level) {
+  currentLevel = LOG_LEVELS[level];
+  console.log(`log level set to ${level}`);
+}
+
+
+
+
 function log(level = "INFO") {
   return function(fn) {
     return async function(...args) {
       const shouldLog = LOG_LEVELS[level] >= currentLevel;
-      const timestamp = () => new Date().toISOString();
+      const timestamp = new Date().toISOString();
+      const start = Date.now();
 
       if (shouldLog && level !== "ERROR") {
-        console.log(`[${timestamp()}] [${level}] ${fn.name} called with:`, args);
+        console.log(`[${timestamp}] [${level}] ${fn.name} called with:`, args);
       }
-
-      const start = Date.now();
 
       try {
         const result = await fn(...args);
         const ms = Date.now() - start;
 
         if (shouldLog && level !== "ERROR") {
-          console.log(`[${timestamp()}] [${level}] ${fn.name} returned:`, result, `(${ms}ms)`);
+          const entry = {
+            timestamp,
+            level,
+            fnName: fn.name,
+            args,
+            result,
+            ms
+          };
+          console.log(formatters[currentFormatter](entry));
         }
 
         return result;
       } catch (err) {
         const ms = Date.now() - start;
-        console.log(`[${timestamp()}] [ERROR] ${fn.name} failed after ${ms}ms:`, err.message);
+        const entry = {
+          timestamp,
+          level: "ERROR",
+          fnName: fn.name,
+          args,
+          error: err.message,
+          ms
+        };
+        console.log(formatters[currentFormatter](entry));
         throw err;
       }
     };
   };
-}
-
-function setLogLevel(level) {
-  currentLevel = LOG_LEVELS[level];
 }
 
 function add(a, b) {
@@ -52,32 +94,31 @@ async function riskyOperation(x) {
 }
 
 
-const loggedAdd = log(add);
+const loggedAdd = log("INFO")(add);
 const loggedFetch = log("DEBUG")(fetchUser);
 const loggedRisky = log("ERROR")(riskyOperation);
 
 async function main() {
-  console.log("=== INFO level ===");
+  console.log("=== text formatter (default) ===");
   await loggedAdd(2, 3);
-
-  console.log("\n=== DEBUG level (async) ===");
   await loggedFetch(1);
 
-  console.log("\n=== ERROR level - success (no output) ===");
-  await loggedRisky(5);
+  console.log("\n=== json formatter ===");
+  setFormatter("json");
+  await loggedAdd(5, 5);
+  await loggedFetch(2);
 
-  console.log("\n=== ERROR level - failure ===");
+  console.log("\n=== short formatter ===");
+  setFormatter("short");
+  await loggedAdd(1, 1);
+
+  console.log("\n=== error with json formatter ===");
+  setFormatter("json");
   try {
     await loggedRisky(-1);
   } catch (err) {
     console.log("caught:", err.message);
   }
-
-  console.log("\n=== set level to ERROR (suppress DEBUG and INFO) ===");
-  setLogLevel("ERROR");
-  await loggedAdd(10, 20);
-  await loggedFetch(2);
-  console.log("(no logs above = correct)");
 }
 
 main();
