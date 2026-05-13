@@ -2,24 +2,32 @@ const LOG_LEVELS = { DEBUG: 0, INFO: 1, ERROR: 2 };
 
 let currentLevel = LOG_LEVELS.DEBUG;
 
-function log(fn) {
+function log(level = "INFO") {
   return function(fn) {
-    return function(...args) {
+    return async function(...args) {
       const shouldLog = LOG_LEVELS[level] >= currentLevel;
+      const timestamp = () => new Date().toISOString();
 
-      if (shouldLog) {
-        const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] [${level}] calling ${fn.name} with args:`, args);
+      if (shouldLog && level !== "ERROR") {
+        console.log(`[${timestamp()}] [${level}] ${fn.name} called with:`, args);
       }
 
-      const result = fn(...args);
+      const start = Date.now();
 
-      if (shouldLog) {
-        const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] [${level}] ${fn.name} returned:`, result);
+      try {
+        const result = await fn(...args);
+        const ms = Date.now() - start;
+
+        if (shouldLog && level !== "ERROR") {
+          console.log(`[${timestamp()}] [${level}] ${fn.name} returned:`, result, `(${ms}ms)`);
+        }
+
+        return result;
+      } catch (err) {
+        const ms = Date.now() - start;
+        console.log(`[${timestamp()}] [ERROR] ${fn.name} failed after ${ms}ms:`, err.message);
+        throw err;
       }
-
-      return result;
     };
   };
 }
@@ -37,16 +45,39 @@ async function fetchUser(id) {
   return { id, name: "Alice" };
 }
 
+async function riskyOperation(x) {
+  await new Promise(r => setTimeout(r, 50));
+  if (x < 0) throw new Error("negative value not allowed");
+  return x * 2;
+}
+
 
 const loggedAdd = log(add);
 const loggedFetch = log("DEBUG")(fetchUser);
+const loggedRisky = log("ERROR")(riskyOperation);
 
 async function main() {
-  loggedAdd(2, 3);
+  console.log("=== INFO level ===");
+  await loggedAdd(2, 3);
 
-  console.log("\n--- async (with bug) ---");
-  const result = loggedFetch(1);
-  console.log("got:", result);
+  console.log("\n=== DEBUG level (async) ===");
+  await loggedFetch(1);
+
+  console.log("\n=== ERROR level - success (no output) ===");
+  await loggedRisky(5);
+
+  console.log("\n=== ERROR level - failure ===");
+  try {
+    await loggedRisky(-1);
+  } catch (err) {
+    console.log("caught:", err.message);
+  }
+
+  console.log("\n=== set level to ERROR (suppress DEBUG and INFO) ===");
+  setLogLevel("ERROR");
+  await loggedAdd(10, 20);
+  await loggedFetch(2);
+  console.log("(no logs above = correct)");
 }
 
 main();
