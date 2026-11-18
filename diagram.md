@@ -1,5 +1,3 @@
-# Use Case діаграма — Scooter Rental Service
-
 ```mermaid
 flowchart LR
     Guest["Гість"]
@@ -8,7 +6,7 @@ flowchart LR
 
     User --|> Guest
 
-subgraph System ["Сервіс оренди електросамокатів"]
+    subgraph System Region Сервіс оренди електросамокатів
         direction LR
         UC1(["Перегляд станцій та самокатів"])
         UC2(["Початок оренди самоката"])
