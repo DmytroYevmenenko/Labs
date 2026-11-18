@@ -1,4 +1,4 @@
-
+```mermaid
 flowchart LR
     Guest["Гість"]
     User["Користувач"]
