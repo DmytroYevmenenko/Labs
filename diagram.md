@@ -1,12 +1,12 @@
-```mermaid
+
 flowchart LR
     Guest["Гість"]
     User["Користувач"]
     Bank["Платіжний провайдер"]
 
-    User --|> Guest
+    User --> Guest
 
-    subgraph System Region Сервіс оренди електросамокатів
+    subgraph System["Сервіс оренди електросамокатів"]
         direction LR
         UC1(["Перегляд станцій та самокатів"])
         UC2(["Початок оренди самоката"])
@@ -22,5 +22,5 @@ flowchart LR
 
     Bank --- UC3
 
-    UC2 -.->|"<<include>>"| UC1
-    UC4 -.->|"<<extend>>"| UC3
+    UC2 -.->|include| UC1
+    UC4 -.->|extend| UC3
