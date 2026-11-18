@@ -6,6 +6,8 @@ flowchart LR
     User["Користувач"]
     Bank["Платіжний провайдер"]
 
+    User --|> Guest
+
     subgraph System["Сервіс оренди електросамокатів"]
         UC1(["Перегляд станцій та самокатів"])
         UC2(["Початок оренди самоката"])
@@ -15,7 +17,6 @@ flowchart LR
     end
 
     Guest --- UC1
-    User --- UC1
     User --- UC2
     User --- UC3
     User --- UC5
@@ -23,4 +24,4 @@ flowchart LR
     Bank --- UC3
 
     UC2 -.->|"<<include>>"| UC1
-    UC3 -.->|"<<include>>"| UC4
+    UC4 -.->|"<<extend>>"| UC3
