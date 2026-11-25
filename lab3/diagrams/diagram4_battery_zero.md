@@ -13,16 +13,21 @@ sequenceDiagram
     deactivate Scooter
 
     activate Rental
-    Rental->>Rental: findActiveRentalByScooter(scooterId)
+    Rental->>Rental: getActiveRentalIfOpen(scooterId)
     activate Rental
-    Rental-->>Rental: activeRental(rentalId, userId, startTime)
+    Rental-->>Rental: rentalState(rentalId, userId, startTime, endTime)
     deactivate Rental
 
-    alt batteryLevel == 0
+    alt batteryLevel == 0 and endTime == NULL
         Rental->>Rental: stopRideWithoutStation(rentalId, endTime)
         Note over Rental: SCOOTER.station_id лишається NULL до приїзду сервісу
-        Rental->>Billing: calculateAndCharge(rentalId, startTime, endTime)
+        Rental->>Billing: billCompletedRental(rentalId, userId, startTime, endTime)
         activate Billing
+        Billing->>Billing: calculateTotalCost(startTime, endTime)
+        Billing->>Rental: saveTotalCost(rentalId, totalCost)
+        activate Rental
+        Rental-->>Billing: costSaved
+        deactivate Rental
         Billing->>Gateway: chargeUser(userId, totalCost)
         activate Gateway
         Gateway-->>Billing: chargeAccepted(txId)
@@ -30,7 +35,9 @@ sequenceDiagram
         Billing-->>Rental: paymentInitiated(totalCost)
         deactivate Billing
         Rental--)User: notifyEmergencyBatteryStop(rentalId, totalCost)
-    else batteryLevel > 0
+    else endTime != NULL
+        Note over Rental: Поїздку вже закрито раніше — повторне списання ігнорується
+    else batteryLevel > 0 and endTime == NULL
         Rental->>Rental: updateCurrentBattery(scooterId, batteryLevel)
     end
     deactivate Rental
