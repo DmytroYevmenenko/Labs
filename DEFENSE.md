@@ -13,3 +13,8 @@
 
 ## Як перевіряв узгодженість із першою роботою
 Пройшовся по кожній вимозі, сценарію та рядку матриці й звірив назви таблиць і полів із першою роботою (`https://github.com/DmytroYevmenenko/KPIlabs`), а також перевірив Gherkin, діаграму та записи в `ai_promts.md`.
+
+
+## Здача
+(а) посилання на GitHub PR: `https://github.com/DmytroYevmenenko/Labs/pull/1`
+(б) цей заповнений DEFENSE.
