@@ -1,14 +1,12 @@
-# Use Case діаграма — Сервіс прокату самокатів
-
-```plantuml
 @startuml
+title Use Case діаграма — Сервіс прокату самокатів
 left to right direction
 
 actor "Гість" as Guest
 actor "Користувач" as User
 actor "Платіжний шлюз" as PaymentGateway
 
-User -|> Guest
+User --|> Guest
 
 rectangle "Сервіс прокату самокатів" {
   usecase "Перегляд станцій та самокатів" as UC1
