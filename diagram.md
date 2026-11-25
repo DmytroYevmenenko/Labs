@@ -6,7 +6,7 @@ flowchart LR
     User(["Користувач"])
     PaymentGateway(["Платіжний шлюз"])
 
-    User -->|успадковує| Guest
+    User --o|успадковує| Guest
 
     subgraph System ["Сервіс прокату самокатів"]
         direction TB
