@@ -1,27 +1,28 @@
-@startuml
-title Use Case діаграма — Сервіс прокату самокатів
-left to right direction
+### Use Case діаграма — Сервіс прокату самокатів
 
-actor "Гість" as Guest
-actor "Користувач" as User
-actor "Платіжний шлюз" as PaymentGateway
+```mermaid
+flowchart LR
+    Guest(["Гість"])
+    User(["Користувач"])
+    PaymentGateway(["Платіжний шлюз"])
 
-User --|> Guest
+    User -->|успадковує| Guest
 
-rectangle "Сервіс прокату самокатів" {
-  usecase "Перегляд станцій та самокатів" as UC1
-  usecase "Початок оренди самоката" as UC2
-  usecase "Завершення поїздки та розрахунок вартості" as UC3
-  usecase "Надсилання вебхуку статусу оплати" as UC4
-  usecase "Перегляд історії поїздок" as UC5
-}
+    subgraph System ["Сервіс прокату самокатів"]
+        direction TB
+        UC1(["Перегляд станцій та самокатів"])
+        UC2(["Початок оренди самоката"])
+        UC3(["Завершення поїздки та розрахунок вартості"])
+        UC4(["Надсилання вебхуку статусу оплати"])
+        UC5(["Перегляд історії поїздок"])
+    end
 
-Guest -- UC1
-User -- UC2
-User -- UC3
-User -- UC5
-PaymentGateway -- UC4
+    Guest --- UC1
+    User --- UC2
+    User --- UC3
+    User --- UC5
+    PaymentGateway --- UC4
 
-UC2 ..> UC1 : <<include>>
-UC4 ..> UC3 : <<extend>>
-@enduml
+    UC2 -.->|"&lt;&lt;include&gt;&gt;"| UC1
+    UC4 -.->|"&lt;&lt;extend&gt;&gt;"| UC3
+```
