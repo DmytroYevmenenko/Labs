@@ -1,17 +1,19 @@
+### Use Case діаграма — Сервіс прокату самокатів
+
 ```mermaid
 flowchart LR
-    Guest["Гість"]
-    User["Користувач"]
-    Bank["Платіжний провайдер"]
+    Guest(["Гість"])
+    User(["Користувач"])
+    PaymentGateway(["Платіжний шлюз"])
 
-    User --> Guest
+    User --o|успадковує| Guest
 
-    subgraph System["Сервіс оренди електросамокатів"]
-        direction LR
+    subgraph System ["Сервіс прокату самокатів"]
+        direction TB
         UC1(["Перегляд станцій та самокатів"])
         UC2(["Початок оренди самоката"])
-        UC3(["Завершення поїздки та оплата"])
-        UC4(["Аварійне блокування при розряді"])
+        UC3(["Завершення поїздки та розрахунок вартості"])
+        UC4(["Надсилання вебхуку статусу оплати"])
         UC5(["Перегляд історії поїздок"])
     end
 
@@ -19,8 +21,8 @@ flowchart LR
     User --- UC2
     User --- UC3
     User --- UC5
+    PaymentGateway --- UC4
 
-    Bank --- UC3
-
-    UC2 -.->|include| UC1
-    UC4 -.->|extend| UC3
+    UC2 -.->|"&lt;&lt;include&gt;&gt;"| UC1
+    UC4 -.->|"&lt;&lt;extend&gt;&gt;"| UC3
+```
