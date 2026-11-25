@@ -15,5 +15,5 @@
 Звірив усі 4 `sequenceDiagram` зі сценаріями Gherkin (`lab2/scenarios.md`) та ER-моделлю Завдання 1 (`https://github.com/DmytroYevmenenko/KPIlabs`): перевірив використання полів `start_time`, `end_time`, `total_cost`, `station_id`, `capacity`, `battery_level`, безперервність `activation bars` поза умовними фрагментами та коректний рендер діаграм на GitHub.
 
 ## Здача
-(а) посилання на GitHub PR: ``
+(а) посилання на GitHub PR: `https://github.com/DmytroYevmenenko/Labs/pull/2`
 (б) цей заповнений `DEFENSE.md`.
